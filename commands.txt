@@ -106,4 +106,43 @@ here in the booth, so check a weather app before the big game!
 Sports fans, I call it like it is: I do not have the current weather up here in Atlanta. You can 
 check a weather app for the most accurate forecast.
 
+6.
+git add ollama/ commands.txt
+git commit -m "Add commentator chatbot"
+git push
 
+7.
+python3 ollama/ask_local.py
+nano ollama/ask_local.py
+python3 ollama/ask_local.py
+
+commentator uses more prompt_tokens (146 vs 36) because my system prompt and the MESSAGE example from the Modelfile are sent along with the question, so the model reads a lot more text before it answers.
+
+8.
+python3 ollama/ask_json.py
+
+{
+"answer": "I do not know the answer to your question about
+length
+Traceback (most recent call last):
+  File "/Users/ashyu0216/datasci350-quiz03/ollama/ask_json.py", line 18, in <module>
+    print(json.loads(reply)["answer"])
+          ~~~~~~~~~~^^^^^^^
+  File "/opt/anaconda3/lib/python3.14/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/anaconda3/lib/python3.14/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.14/json/decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 11 (char 12)
+
+nano ollama/ask_json.py
+python3 ollama/ask_json.py
+
+
+It failed because max_tokens=15 only let the model write a few words, so the JSON got cut off halfway and json.loads couldn't parse it.
+
+9.
