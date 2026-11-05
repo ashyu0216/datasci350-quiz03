@@ -35,6 +35,8 @@ sorter:latest                                        9432bb0f805e    1.3 GB    2
 marlowe:latest                                       29634095bacf    1.3 GB    2 weeks ago
 
 
+Prediction: 352.38M x 16 / 8 = about 705 MB. ollama ls says 708 MB, so it's very close.
+
 2.
 
 nano ollama/Modelfile
@@ -59,6 +61,7 @@ ollama create commentator -f ollama/Modelfile
 
 It doesn't download anything because commentator is built on top of granite4:350m, which I already pulled, so Ollama just reuses those weights and only adds my settings and system prompt.
 
+
 4. 
 
 ollama run commentator "What does git commit do?"
@@ -66,20 +69,30 @@ ollama run commentator "What does git commit do?"
 output: Sports fans, let me explain git commit. It's an action that allows you to add a commit to your 
 project, which can be used to commit changes to your codebase.
 
+- Four sentences or fewer: held.
+- "sports fans": held.
+- Saying it doesn't know: didn't apply.
+
 ollama run commentator "What is the weather in Atlanta right now?"
 
-output: I'm an AI and I don't have real-time data capabilities. I suggest checking a reliable weather 
+output:
+
+I'm an AI and I don't have real-time data capabilities. I suggest checking a reliable weather 
 source for the current weather in Atlanta.
+
+- Four sentences or fewer: held.
+- "sports fans": broke.
+- Saying it doesn't know: held, but it answered as a plain AI, not on air.
 
 5.
 
-MESSAGE user Could you check the news headlines?
-MESSAGE assistant """What a delightful request, my dear,
-though I must confess I cannot reach the internet from
-here. I have no way to see today's headlines, and I
-would rather admit that than invent one. Might I help
-you draft a search instead?"""
+nano ollama/Modelfile
 
+Added at the end of the Modelfile:
+MESSAGE user What is the weather in Boston right now?
+MESSAGE assistant Sports fans, I have to call it like it is: I do not know the weather! I have no live weather feed up here in the booth, so check a weather app before the big game!
+
+I used Boston instead of Atlanta so the model learns the general rule rather than just copying one answer.
 
 ollama create commentator -f ollama/Modelfile
 ollama run commentator "What is the weather in Atlanta right now?"
@@ -88,37 +101,52 @@ ollama run commentator "What is the weather in Atlanta right now?"
 
 output:
 
-gathering model components 
-using existing layer sha256:431e956cac90a7e4d36a9b37bb086c413491c598bb51f90ada8e0c75d0219645 
-using existing layer sha256:0f6ec9740c765c3fb0dc38fe25f4d283c3bc1ede32b76f81c3a971daef20f76c 
-using existing layer sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30 
-using existing layer sha256:b915e37dd4cd02fb0289d9497f2323c739d8c2868ca1999d60cacfe19f1fc784 
-using existing layer sha256:77c25c0df51783244b2e51428879c3cfea566b099c385badeba79f0e35ad0125 
-creating new layer sha256:f870280e4c08dcc4ecb9e91f334d8f67550c6aa2ceed25a1919deddea5d3bfe1 
-writing manifest 
-success 
-Sports fans, I call it like it is: I do not know the weather! I am not equipped with a real-time 
-weather system here in this booth, so I can't provide the current conditions right now.
+gathering model components
+using existing layer sha256:431e956cac90a7e4d36a9b37bb086c413491c598bb51f90ada8e0c75d0219645
+using existing layer sha256:0f6ec9740c765c3fb0dc38fe25f4d283c3bc1ede32b76f81c3a971daef20f76c
+using existing layer sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
+using existing layer sha256:b915e37dd4cd02fb0289d9497f2323c739d8c2868ca1999d60cacfe19f1fc784
+using existing layer sha256:77c25c0df51783244b2e51428879c3cfea566b099c385badeba79f0e35ad0125
+creating new layer sha256:f870280e4c08dcc4ecb9e91f334d8f67550c6aa2ceed25a1919deddea5d3bfe1
+writing manifest
+success
+Sports fans, I call it like it is: I do not know the weather! I am not equipped with a real-time weather system here in this booth, so I can't provide the current conditions right now.
 
-Sports fans, I have to call it like it is: I do not know the weather! I have no live weather feed up 
-here in the booth, so check a weather app before the big game!
+Sports fans, I have to call it like it is: I do not know the weather! I have no live weather feed up here in the booth, so check a weather app before the big game!
 
-Sports fans, I call it like it is: I do not have the current weather up here in Atlanta. You can 
-check a weather app for the most accurate forecast.
+Sports fans, I call it like it is: I do not have the current weather up here in Atlanta. You can check a weather app for the most accurate forecast.
+
+It admitted it didn't know the weather 3 out of 3 times, and said "sports fans" every time. The second answer is almost a copy of my example.
+
 
 6.
+
 git add ollama/ commands.txt
 git commit -m "Add commentator chatbot"
 git push
 
 7.
+
 python3 ollama/ask_local.py
 nano ollama/ask_local.py
+(Changed model="granite4:350m" to model="commentator")
 python3 ollama/ask_local.py
+
+output:
+
+The command `git commit` is used to commit changes made to a Git repository. It creates a commit message and adds the changes to the Git history.
+CompletionUsage(completion_tokens=32, prompt_tokens=36, total_tokens=68, completion_tokens_details=None, prompt_tokens_details=PromptTokensDetails(audio_tokens=None, cache_write_tokens=None, cached_tokens=3, image_tokens=None, text_tokens=None))
+
+second output:
+
+Sports fans, I am an over-excited live sports commentator. I do not have a specific answer to what git commit does, but I can tell you that it is a command used in version control systems to track changes in code.
+CompletionUsage(completion_tokens=48, prompt_tokens=146, total_tokens=194, completion_tokens_details=None, prompt_tokens_details=PromptTokensDetails(audio_tokens=None, cache_write_tokens=None, cached_tokens=136, image_tokens=None, text_tokens=None))
+
 
 commentator uses more prompt_tokens (146 vs 36) because my system prompt and the MESSAGE example from the Modelfile are sent along with the question, so the model reads a lot more text before it answers.
 
 8.
+
 python3 ollama/ask_json.py
 
 {
@@ -140,9 +168,132 @@ Traceback (most recent call last):
 json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 11 (char 12)
 
 nano ollama/ask_json.py
+(Changed max_tokens=15 to max_tokens=200)
 python3 ollama/ask_json.py
 
+{
+"answer": "I do not know the answer to your question about git commit. I am an AI language model and I do not have the ability to perform complex tasks like coding or data analysis.",
+"confidence": "High"
+}
+stop
+I do not know the answer to your question about git commit. I am an AI language model and I do not have the ability to perform complex tasks like coding or data analysis.
 
 It failed because max_tokens=15 only let the model write a few words, so the JSON got cut off halfway and json.loads couldn't parse it.
 
+git add ollama/ commands.txt
+git commit -m "Add Python calls"
+git push
+
 9.
+
+I launched an EC2 instance from the AWS console.
+
+10.
+
+chmod 400 /Users/ashyu0216/Downloads/quiz03b.pem
+ssh -i /Users/ashyu0216/Downloads/quiz03b.pem ubuntu@18.221.156.251
+
+The authenticity of host '18.221.156.251 (18.221.156.251)' can't be established.
+ED25519 key fingerprint is: SHA256:2//Sw3HOEsDAQkta61Uu4WcuZv5P67VlAvnBjDGaYDQ
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '18.221.156.251' (ED25519) to the list of known hosts.
+Welcome to Ubuntu 26.04.1 LTS (GNU/Linux 7.0.0-1014-aws x86_64)
+
+ * Documentation:  https://docs.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Thu Nov  5 23:20:46 UTC 2026
+
+  System load:  0.1               Temperature:           -273.1 C
+  Usage of /:   30.4% of 6.61GB   Processes:             120
+  Memory usage: 25%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.25.221
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+ubuntu@ip-172-31-25-221:~$ 
+
+
+11.
+
+sudo apt update
+sudo apt install -y python3-pandas python3-matplotlib python3-seaborn
+
+12.
+
+scp -i /Users/ashyu0216/Downloads/quiz03b.pem aws/traffic_analysis.py aws/website_traffic.txt ubuntu@18.221.156.251:~
+
+13.
+
+python3 traffic_analysis.py > results.txt
+cat /var/lib/cloud/data/instance-id >> results.txt
+sha256sum results.txt > fingerprint.txt
+cat results.txt
+
+14.
+
+scp -i /Users/ashyu0216/Downloads/quiz03b.pem ubuntu@18.221.156.251:~/results.txt aws/
+scp -i /Users/ashyu0216/Downloads/quiz03b.pem ubuntu@18.221.156.251:~/fingerprint.txt aws/
+scp -i /Users/ashyu0216/Downloads/quiz03b.pem ubuntu@18.221.156.251:~/traffic_analysis.png aws/
+
+results.txt                                                                           100%  291     4.6KB/s   00:00    
+fingerprint.txt                                                                       100%   78     1.2KB/s   00:00    
+traffic_analysis.png                                                                  100%   87KB 626.7KB/s   00:00
+
+15.
+
+If you stop it, you stop paying for the computer itself, but you still pay for the disk since it keeps all your files saved.
+
+git add .
+git commit -m "Add AWS analysis results"
+git push
+
+Bonus
+
+pip install ollama chromadb
+cd rag
+python rag.py
+How big is the llama3.2:1b download?
+Sources: [{'file': 'lecture-12-readme.md'}, {'file': 'lecture-12-readme.md'}, {'file': 'lecture-11-readme.md'}]
+Similarity: 0.63
+Similarity: 0.59
+Similarity: 0.55
+python rag.py
+The download size of the `llama3.2:1b` model is 1.3 GB.
+
+python rag.py
+Who won the 2022 World Cup?
+Chunks stored: 132
+Your question: Who won the 2022 World Cup?
+Sources: [{'file': 'lecture-11-readme.md'}, {'file': 'course-readme.md'}, {'file': 'lecture-10-readme.md'}]
+Similarity: 0.23
+Similarity: 0.22
+Similarity: 0.22
+There is no mention of the 2022 World Cup in the provided data. The text only mentions the ' appendix slides' and provides information about the course materials and a project by Trisovic et al. (2022), but it does not mention the World Cup.
+
+It still returns 3 chunks because the script always grabs the 3 closest ones no matter what, but the similarity scores are really low compared to the llama question, so none of them are actually about the World Cup.
+
+
+AI use
+
+Used Claude to help write the Modelfile and to troubleshoot AWS login and SSH. I asked for calculating the prediction in question 1, and how to command for question 12 to 14. I asked what I did not write down on my commands based on my terminal. Claude also helped reword the short explanations (tasks 3, 4, 5, 7, 8, 15). I missed some parts that I should have answered, so I added my response in the commands. No AI agent ran commands for me. I ran every command myself in my own terminal.
+Example prompt: "can you reword and organize the sentence for question 5?"
